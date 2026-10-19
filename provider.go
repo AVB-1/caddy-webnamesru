@@ -89,3 +89,12 @@ func (p *Provider) doRequest(ctx context.Context, domain, action, record string)
 	}
 	return nil
 }
+// GetRecords возвращает записи зоны. Для DNS-01 не используется, но требуется Caddy.
+func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record, error) {
+    return nil, fmt.Errorf("webnamesru: GetRecords не поддерживается")
+}
+
+// SetRecords устанавливает записи. Для DNS-01 не используется, но требуется Caddy.
+func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
+    return nil, fmt.Errorf("webnamesru: SetRecords не поддерживается")
+}
