@@ -1,28 +1,70 @@
-name: Build Caddy with webnamesru
-on: [push, workflow_dispatch]
+name: Build Caddy Binary and Docker Image
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  # ========== Задача 1: сборка standalone бинарника ==========
+  build-binary:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-      
+
       - name: Install xcaddy
         run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-      
-      - name: Build Caddy
+
+      - name: Build Caddy binary
         run: |
           xcaddy build v2.10.2 \
-            --with github.com/AVB-1/caddy-webnamesru@v0.1.0 \
+            --with github.com/ваш-username/caddy-webnamesru@v0.1.0 \
             --output ./caddy-webnamesru
-      
-      - name: Upload binary
+
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: caddy-webnamesru
+          name: caddy-webnamesru-binary
           path: ./caddy-webnamesru
+
+  # ========== Задача 2: сборка и публикация Docker-образа ==========
+  build-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
