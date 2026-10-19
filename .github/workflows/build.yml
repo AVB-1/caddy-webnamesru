@@ -27,7 +27,7 @@ jobs:
       - name: Build Caddy binary
         run: |
           xcaddy build v2.10.2 \
-            --with github.com/AVB-1/caddy-webnamesru@v0.1.0 \
+            --with github.com/AVB-1/caddy-webnamesru@v0.1.1 \
             --output ./caddy-webnamesru
 
       - name: Upload binary artifact
